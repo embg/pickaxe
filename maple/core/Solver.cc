@@ -599,6 +599,20 @@ CRef Solver::propagate()
             assert(c[1] == false_lit);
             i++;
 
+            // INSTRUMENTATION: Print out number of currently non-false literals
+            {
+                int num_false_count = 0;
+                for (int k = 0; k < c.size(); k++)
+                    if (value(c[k]) != l_False)
+                        num_false_count++;
+                
+                printf(
+                    "NUM_NOT_FALSE NUM_TOTAL %d %d",
+                    not_false_count,
+                    c.size()
+                );
+            }
+
             // If 0th watch is true, then clause is already satisfied.
             Lit     first = c[0];
             Watcher w     = Watcher(cr, first);
