@@ -607,7 +607,7 @@ CRef Solver::propagate()
                         not_false_count++;
                 
                 printf(
-                    "NUM_NOT_FALSE NUM_TOTAL %d %d",
+                    "NFNT %d %d",
                     not_false_count,
                     c.size()
                 );
