@@ -601,10 +601,10 @@ CRef Solver::propagate()
 
             // INSTRUMENTATION: Print out number of currently non-false literals
             {
-                int num_false_count = 0;
+                int not_false_count = 0;
                 for (int k = 0; k < c.size(); k++)
                     if (value(c[k]) != l_False)
-                        num_false_count++;
+                        not_false_count++;
                 
                 printf(
                     "NUM_NOT_FALSE NUM_TOTAL %d %d",
