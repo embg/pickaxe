@@ -12,7 +12,6 @@ istds = npstreams.istd(stream_for_stds, axis=1)
 
 avgs, stds = npstreams.last(zip(iavgs, istds))
 print(*list(avgs), *list(stds))
-# Incorrect
 
 
 

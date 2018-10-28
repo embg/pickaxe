@@ -1,0 +1,7 @@
+foo
+bar 1 2 3
+NFNT 1 2
+baz
+NFNT 2 4
+NFNT 1 2
+NFNT 10 20
