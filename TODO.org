@@ -1,0 +1,1 @@
+ * Copy https://www.johndcook.com/blog/standard_deviation/ into Solver.cc and print stats to a CSV (in destructor)
