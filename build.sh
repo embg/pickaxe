@@ -1,4 +1,5 @@
 export MROOT=/home/elliot/pickaxe/maple
 cd maple/core
 make
-cp maplesat ../../
+cd ../../
+cp maple/core/maplesat $1
