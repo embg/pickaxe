@@ -1,17 +1,23 @@
-import sys, npstreams
-import numpy as np
+import sys, re
 
-cleaned = (line.rstrip().split() for line in sys.stdin)
-filtered = (map(int, line[1:]) for line in cleaned if line[0] == 'NFNT')
-stream = ((NF, NF / NT) for NF, NT in filtered)
-# Correct up to here
+# Read stdin to the "STATS:" line
+stream = iter(sys.stdin)
+for line in stream:
+    if line.rstrip() == "STATS:":
+        break
+    else:
+        print(line)
 
-stream_for_avgs, stream_for_stds = npstreams.itercopy(stream)
-iavgs = npstreams.imean(stream_for_avgs, axis=1)
-istds = npstreams.istd(stream_for_stds, axis=1)
+# Read the following data lines
+# Format: "key: mean +/- std"
+pattern = re.compile(r"(\w+): (\d+\.\d+) \+/- (\d+\.\d+)")
+data = dict()
+for line in stream:
+    match = re.match(pattern, line)
+    if match:
+        key, mean, std = match.groups()
+        data[key] = {'mean': mean, 'std': std}
 
-avgs, stds = npstreams.last(zip(iavgs, istds))
-print(*list(avgs), *list(stds))
-
-
-
+# Write dict-of-dicts to stdout
+print(data)
+print(',')
