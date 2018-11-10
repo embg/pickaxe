@@ -27,6 +27,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "utils/Options.h"
 #include "core/SolverTypes.h"
 
+#include <map>
+#include <string>
+
 class RunningStat
     {
     public:
@@ -92,7 +95,7 @@ class Solver {
 public:
 
     // Stats
-    vec<RunningStat> stats;
+    std::map<std::string, RunningStat> stats;
 
     // Constructor/Destructor:
     //

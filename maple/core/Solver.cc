@@ -127,7 +127,10 @@ Solver::Solver() :
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
-{}
+{
+    stats.insert(std::make_pair("depth_abs", RunningStat()));
+    stats.insert(std::make_pair("depth_rel", RunningStat()));
+}
 
 
 Solver::~Solver()
@@ -599,18 +602,15 @@ CRef Solver::propagate()
             assert(c[1] == false_lit);
             i++;
 
-            // INSTRUMENTATION: Print out number of currently non-false literals
+            // INSTRUMENTATION: Unit prop depth monitoring.
             {
-                int not_false_count = 0;
+                double not_false_count = 0;
                 for (int k = 0; k < c.size(); k++)
                     if (value(c[k]) != l_False)
                         not_false_count++;
-                
-                printf(
-                    "NFNT %d %d\n",
-                    not_false_count,
-                    c.size()
-                );
+
+                stats["depth_abs"].Push(not_false_count);
+                stats["depth_rel"].Push(not_false_count / c.size());
             }
 
             // If 0th watch is true, then clause is already satisfied.
