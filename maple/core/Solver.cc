@@ -130,11 +130,13 @@ Solver::Solver() :
 {
     stats.insert(std::make_pair("depth_abs", RunningStat()));
     stats.insert(std::make_pair("depth_rel", RunningStat()));
+    stats.insert(std::make_pair("length", RunningStat()));
 }
 
 
 Solver::~Solver()
 {
+    std::cout << std::endl << "STATS:" << std::endl;
     for (auto const& x : stats) {
         std::cout << x.first  // string (key)
                   << ": "
@@ -610,7 +612,7 @@ CRef Solver::propagate()
             assert(c[1] == false_lit);
             i++;
 
-            // INSTRUMENTATION: Unit prop depth monitoring.
+            // INSTRUMENTATION
             {
                 double not_false_count = 0;
                 for (int k = 0; k < c.size(); k++)
@@ -619,6 +621,7 @@ CRef Solver::propagate()
 
                 stats["depth_abs"].Push(not_false_count);
                 stats["depth_rel"].Push(not_false_count / c.size());
+                stats["length"].Push(c.size());
             }
 
             // If 0th watch is true, then clause is already satisfied.
