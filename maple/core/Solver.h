@@ -27,8 +27,10 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "utils/Options.h"
 #include "core/SolverTypes.h"
 
+// For instrumentation
 #include <map>
 #include <string>
+#include <iostream>
 
 class RunningStat
     {

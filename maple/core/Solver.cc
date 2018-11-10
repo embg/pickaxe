@@ -135,6 +135,14 @@ Solver::Solver() :
 
 Solver::~Solver()
 {
+    for (auto const& x : stats) {
+        std::cout << x.first  // string (key)
+                  << ": "
+                  << x.second.Mean()
+                  << " +/- "
+                  << x.second.StandardDeviation()
+                  << std::endl;
+    }
 }
 
 
