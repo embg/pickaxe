@@ -19,4 +19,3 @@ for line in stream:
 
 # Write dict-of-dicts to stdout
 print(data)
-print(',')
