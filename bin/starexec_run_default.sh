@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./maplesat $f | python3 postprocess.py
+./maplesat $f | python postprocess.py
