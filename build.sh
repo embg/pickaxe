@@ -3,4 +3,5 @@ cd maple/core
 make
 cd ../../
 cp maple/core/maplesat solver/bin/maplesat
-zip -r solver.zip solver
+cd solver
+zip -r ../solver.zip bin
