@@ -1,1 +1,1 @@
-zip solver.zip maple bin starexec_build.sh
+zip -r solver.zip maple bin starexec_build.sh
