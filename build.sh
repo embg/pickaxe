@@ -1,1 +1,1 @@
-starexec_build.sh
+starexec_build
