@@ -45,6 +45,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <cstring>
 #include <assert.h>
 #include <cmath>
 #include <map>
