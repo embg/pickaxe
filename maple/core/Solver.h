@@ -21,8 +21,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
-#include "core/Miner.h"
-
 #include "mtl/Vec.h"
 #include "mtl/Heap.h"
 #include "mtl/Alg.h"
@@ -90,21 +88,22 @@ class RunningStat
         double m_oldM, m_newM, m_oldS, m_newS;
     };
 
+class Miner;
+
 namespace Minisat {
 
 //=================================================================================================
 // Solver -- the main class:
 
 class Solver {
-    friend class Miner;
-    
+    friend Miner;
  public:
 
     // Stats
     std::map<std::string, RunningStat> stats;
 
     // Miner
-    Miner miner;
+    Miner* miner;
 
     // Constructor/Destructor:
     //
@@ -236,8 +235,7 @@ class Solver {
     vec<long double> total_actual_rewards;
     vec<int> total_actual_count;
 
-protected:
-
+protected:  
     // Helper structures:
     //
     struct VarData { CRef reason; int level; };

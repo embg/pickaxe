@@ -2,23 +2,22 @@
 #define Minisat_Miner_h
 
 #include "core/Index.h"
+#include "core/Solver.h"
+
 #include <cstdio>
 #include <string>
 
-namespace Minisat {
-    class Solver;
-};
-
 class Miner {
   public:
-    Miner(int batch, float sup, Minisat::Solver &sol);
+    Miner(Minisat::Solver* sol, int batch, float sup);
     ~Miner();
     
     void attachClause(); // TODO: implement callback
     void removeClause(); // TODO: implement callback (want to save clause if it's hidden in a super)
-    
+    void process();
+        
   private:
-    Minisat::Solver &solver;
+    Minisat::Solver* solver;
     Index index;
     
     int num_unprocessed;
@@ -27,8 +26,6 @@ class Miner {
 
     std::string in_filename;
     std::string out_filename;
-    
-    void process();
     
     /* Helpers for process() */
     void call_mafia();

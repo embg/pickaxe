@@ -1,5 +1,5 @@
-#include "core/Miner.h"
 #include "core/Solver.h"
+#include "core/Miner.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -7,14 +7,15 @@
 #include <sstream> 
 #include <fstream>
 #include <vector>
+#include <iostream>
 #include <unistd.h>
 #include <sys/syscall.h>
 #define gettid() syscall(SYS_gettid)
 
-Miner::Miner(int batch, float sup, Minisat::Solver &sol)
-    : batch_size(batch)
+Miner::Miner(Minisat::Solver* sol, int batch, float sup)
+    : solver(sol)
+    , batch_size(batch)
     , min_sup(sup)
-    , solver(sol)
 {
     // Open pipes for communicating with Mafia
     std::ostringstream in_ss;
@@ -32,7 +33,7 @@ Miner::Miner(int batch, float sup, Minisat::Solver &sol)
     std::ostringstream command;
     command << "mkfifo"
             << " " << in_filename
-            << " " << out_filename;
+            << " " << out_filename << " &";
     std::system(command.str().c_str());
 }
 
@@ -41,7 +42,7 @@ Miner::~Miner() {
     std::ostringstream command;
     command << "rm"
             << " " << in_filename
-            << " " << out_filename;
+            << " " << out_filename << " &";
     std::system(command.str().c_str());
 
 }
@@ -56,12 +57,13 @@ void Miner::attachClause() {
 // Start Mafia (blocks for input on the pipe in_filename)
 void Miner::call_mafia() {
     std::ostringstream command;
-    command << "./mafia"
-            << " " << "-mfi"
-            << " " << min_sup
-            << " " << "-ascii"
-            << " " << in_filename
-            << " " << out_filename;
+    // command << "./mafia"
+    //         << " " << "-mfi"
+    //         << " " << min_sup
+    //         << " " << "-ascii"
+    //         << " " << in_filename
+    //         << " " << out_filename << " &";
+    command << "python test_pipes.py in_filename out_filename &";
     std::system(command.str().c_str());
 }
 
@@ -69,10 +71,10 @@ void Miner::call_mafia() {
 void Miner::write_mafia_input() {
     std::ofstream file(in_filename);
 
-    int start = solver.learnts.size() - batch_size;
+    int start = solver->learnts.size() - batch_size;
     for (int i = start; i < start + batch_size; i++) {
-        Minisat::CRef cr = solver.learnts[i];
-        Minisat::Clause& c = solver.ca[cr];
+        Minisat::CRef cr = solver->learnts[i];
+        Minisat::Clause& c = solver->ca[cr];
 
         for (int j = 0; j < c.size(); j++) {
             file << c[j].x;
@@ -108,10 +110,15 @@ void Miner::read_mafia_output(){
 
 // Run mafia, parse output, build index, compute cover
 void Miner::process() {
-    if (solver.learnts.size() >= batch_size) {
+    std::cout << "Starting processing..." << std::endl;
+    if (solver->learnts.size() >= batch_size) {
+        std::cout << "Entered if()..." << std::endl;
         call_mafia();
+        std::cout << "call_mafia() complete." << std::endl;
         write_mafia_input();
+        std::cout << "write_input() complete." << std::endl;
         read_mafia_output();
+        std::cout << "read_output() complete." << std::endl;
         index.reduce();
     }
     num_unprocessed = 0;

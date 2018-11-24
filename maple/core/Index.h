@@ -5,8 +5,8 @@
 
 class Index {
  public:
-    Index();
-    ~Index();
+    Index(){};
+    ~Index(){};
     
     void clear();
     void add(std::vector<int> &itemset);

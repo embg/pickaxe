@@ -22,6 +22,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "mtl/Sort.h"
 #include "core/Solver.h"
+#include "core/Miner.h"
 
 using namespace Minisat;
 
@@ -132,7 +133,7 @@ Solver::Solver() :
     stats.insert(std::make_pair("depth_rel", RunningStat()));
     stats.insert(std::make_pair("length", RunningStat()));
 
-    miner = Miner(1000, 0.05, solver);
+    miner = new Miner(this, 1000, 0.05);
 }
 
 
@@ -148,7 +149,8 @@ Solver::~Solver()
                   << std::endl;
     }
 
-    miner.process();
+    miner->process();
+    delete miner;
 }
 
 
