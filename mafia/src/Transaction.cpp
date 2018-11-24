@@ -54,8 +54,7 @@ Transaction *InputData::getNextTransaction() {
 
     int itemIndex = 0;
     if (isAsciiFile) {
-        cout << "ERROR" << endl;
-        cout << "ASCII functionality not implemented!" << endl;
+        cerr << "ASCII functionality not implemented!" << endl;
         exit(1);
     } else {
         int custid;              // customer id (NOT used currently)
@@ -72,8 +71,7 @@ Transaction *InputData::getNextTransaction() {
 
             // ensure that there are not too many items
             if (nitems >= MAX_NUM_ITEMS) {
-                cout << "ERROR" << endl;
-                cout << "More than " << MAX_NUM_ITEMS
+                cerr << "More than " << MAX_NUM_ITEMS
                 << " items in customer id: " << custid
                 << " transaction id: " << transid;
                 exit(1);
@@ -106,7 +104,8 @@ Transaction *InputData::getNextTransaction() {
 /// @param ITEMBUFFER       pointer to buffer for storing a transaction
 /// @param IS_ASCII         true if file is in ASCII format
 /////////////////////////////////////////////////////////////////////
-InputData::InputData(char *filename, int *ITEMBUFFER, bool IS_ASCII) {
+InputData::InputData(char *filename, int *ITEMBUFFER, ) {
+    bool IS_ASCII = 0;
     if (IS_ASCII)
         inputFile.open(filename);
     else
