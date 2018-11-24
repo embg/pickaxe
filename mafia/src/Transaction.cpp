@@ -54,32 +54,17 @@ Transaction *InputData::getNextTransaction() {
 
     int itemIndex = 0;
     if (isAsciiFile) {
-        // read list of items
-        do {
-            int item = 0, pos = 0;
-            inputFile.get(c);
-            while (!inputFile.eof() && (c >= '0') && (c <= '9')) {
-                item *= 10;
-                item += int(c) - int('0');
-                inputFile.get(c);
-                pos++;
-            }
-
-            if (pos) {
-                itembuffer[itemIndex] = item;
-                itemIndex++;
-            }
-        } while (!inputFile.eof() && c != '\n');
-
-        // if end of file is reached
-        if (itemIndex == 0)
-            return 0;
+        cout << "ERROR" << endl;
+        cout << "ASCII functionality not implemented!" << endl;
+        exit(1);
     } else {
         int custid;              // customer id (NOT used currently)
         int transid;             // transaction id
         int nitems = 0;              // number of items in the transaction
 
-        if (!inputFile.eof()) {
+        if (inputFile.eof()) {
+            exit(0);
+        } else {
             // read in the transaction
             inputFile.read((char *)&custid, sizeof(int));
             inputFile.read((char *)&transid, sizeof(int));
@@ -87,6 +72,7 @@ Transaction *InputData::getNextTransaction() {
 
             // ensure that there are not too many items
             if (nitems >= MAX_NUM_ITEMS) {
+                cout << "ERROR" << endl;
                 cout << "More than " << MAX_NUM_ITEMS
                 << " items in customer id: " << custid
                 << " transaction id: " << transid;
