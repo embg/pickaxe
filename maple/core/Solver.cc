@@ -7,7 +7,7 @@ associated documentation files (the "Software"), to deal in the Software without
 including without limitation the rights to use, copy, modify, merge, publish, distribute,
 sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
+n
 The above copyright notice and this permission notice shall be included in all copies or
 substantial portions of the Software.
 
@@ -131,6 +131,8 @@ Solver::Solver() :
     stats.insert(std::make_pair("depth_abs", RunningStat()));
     stats.insert(std::make_pair("depth_rel", RunningStat()));
     stats.insert(std::make_pair("length", RunningStat()));
+
+    miner = Miner(1000, 0.05, solver);
 }
 
 
@@ -145,6 +147,8 @@ Solver::~Solver()
                   << x.second.StandardDeviation()
                   << std::endl;
     }
+
+    miner.process();
 }
 
 
@@ -785,7 +789,7 @@ bool Solver::simplify()
 |    if the clause set is unsatisfiable. 'l_Undef' if the bound on number of conflicts is reached.
 |________________________________________________________________________________________________@*/
 lbool Solver::search(int nof_conflicts)
-{
+{  
     assert(ok);
     int         backtrack_level;
     int         conflictC = 0;

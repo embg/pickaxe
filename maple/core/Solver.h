@@ -21,6 +21,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
+#include "core/Miner.h"
+
 #include "mtl/Vec.h"
 #include "mtl/Heap.h"
 #include "mtl/Alg.h"
@@ -94,10 +96,15 @@ namespace Minisat {
 // Solver -- the main class:
 
 class Solver {
-public:
+    friend class Miner;
+    
+ public:
 
     // Stats
     std::map<std::string, RunningStat> stats;
+
+    // Miner
+    Miner miner;
 
     // Constructor/Destructor:
     //
