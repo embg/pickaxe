@@ -300,7 +300,7 @@ void F1FromFile(char *filename, bool isAsciiFile) {
 
     delete newTransaction;
     delete inData;
-
+    cout << "MAFIA: First reading complete." << endl;
     MS = (int)ceil(MSF * (double)TransCount);
     //MSF = MS/(double)TransCount;
 
@@ -335,6 +335,7 @@ void F1FromFile(char *filename, bool isAsciiFile) {
 
     delete newTransaction;
     delete inData2;
+    cout << "MAFIA: Second reading complete." << endl;
     delete [] itemlist;
 
     time(&read_finish);
@@ -1096,7 +1097,7 @@ int main(int argc, char **argv) {
             Reorder = true;     // Reorder flag
 
             MAFIA(Root, true, FHUT, false);
-        } else if (method.compare("-fi") == 0) {
+        } else if (0) {
             if (outputMFI) {
                 // open output file
                 outFile = new ItemsetOutput(outFilename);

@@ -10,6 +10,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <sys/file.h> 
 #define gettid() syscall(SYS_gettid)
 
 Miner::Miner(Minisat::Solver* sol, int batch, float sup)
@@ -44,7 +45,6 @@ Miner::~Miner() {
             << " " << in_filename
             << " " << out_filename << " &";
     std::system(command.str().c_str());
-
 }
 
 // Callback for Solver::attachClause
@@ -57,20 +57,19 @@ void Miner::attachClause() {
 // Start Mafia (blocks for input on the pipe in_filename)
 void Miner::call_mafia() {
     std::ostringstream command;
-    // command << "./mafia"
-    //         << " " << "-mfi"
-    //         << " " << min_sup
-    //         << " " << "-ascii"
-    //         << " " << in_filename
-    //         << " " << out_filename << " &";
-    command << "python test_pipes.py in_filename out_filename &";
+    command << "./mafia"
+            << " " << "-mfi"
+            << " " << min_sup
+            << " " << "-ascii"
+            << " " << in_filename
+            << " " << out_filename << " &";
     std::system(command.str().c_str());
 }
 
 // Write Mafia in_file for *solver.learnts[-batch_size:]*
 void Miner::write_mafia_input() {
     std::ofstream file(in_filename);
-
+    
     int start = solver->learnts.size() - batch_size;
     for (int i = start; i < start + batch_size; i++) {
         Minisat::CRef cr = solver->learnts[i];
@@ -78,20 +77,24 @@ void Miner::write_mafia_input() {
 
         for (int j = 0; j < c.size(); j++) {
             file << c[j].x;
-            if (j < c.size() - 1)
+            //            std::cout << c[j].x;
+            if (j < c.size() - 1) {
                 file << " ";
+                //      std::cout << " ";
+            }
         }
         file << "\n";
+        //        std::cout << "\n";
     }
-    
+
     file.close();
 }
 
 // Read Mafia out_file into *index*
 void Miner::read_mafia_output(){
     std::ifstream file(out_filename);
+    
     index.clear();
-
     std::string line;
     while (getline(file, line)) {
         int item;
@@ -110,15 +113,13 @@ void Miner::read_mafia_output(){
 
 // Run mafia, parse output, build index, compute cover
 void Miner::process() {
-    std::cout << "Starting processing..." << std::endl;
     if (solver->learnts.size() >= batch_size) {
-        std::cout << "Entered if()..." << std::endl;
         call_mafia();
-        std::cout << "call_mafia() complete." << std::endl;
         write_mafia_input();
-        std::cout << "write_input() complete." << std::endl;
+        std::cout << "C++: First writing complete." << std::endl;
+        write_mafia_input();
+        std::cout << "C++: Second writing complete." << std::endl;
         read_mafia_output();
-        std::cout << "read_output() complete." << std::endl;
         index.reduce();
     }
     num_unprocessed = 0;
