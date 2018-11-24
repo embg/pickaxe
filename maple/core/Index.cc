@@ -9,10 +9,11 @@ void Index::clear() {
 
 void Index::add(std::vector<int> &itemset) {
     for (int i = 0; i < itemset.size(); i++)
-        cout << itemset[i];
+        cout << itemset[i] << " ";
     cout << endl;
 }
 
 void Index::reduce() {
     // Todo
 }
+
