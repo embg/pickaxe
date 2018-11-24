@@ -23,7 +23,11 @@ Miner::Miner(Minisat::Solver* sol, int batch, float sup)
     out_filename = "/home/elliot/pickaxe/out_" + suffix_ss.str();    
 }
 
-Miner::~Miner() {}
+Miner::~Miner() {
+    // Delete the tempfiles
+    remove((in_filename).c_str());
+    remove((out_filename).c_str());
+}
 
 // Callback for Solver::attachClause
 void Miner::attachClause() {
@@ -93,8 +97,6 @@ void Miner::process() {
         call_mafia();
         read_mafia_output();
         index.reduce();
-        remove((in_filename).c_str());
-        remove((out_filename).c_str());
     }
     num_unprocessed = 0;
 }
