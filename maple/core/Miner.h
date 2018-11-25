@@ -31,4 +31,5 @@ class Miner {
 
 };
 
+vector<int> intersect(vector<vector<int>*> in_vecs);
 #endif

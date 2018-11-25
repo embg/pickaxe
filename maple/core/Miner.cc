@@ -12,6 +12,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <cassert>
 #define gettid() syscall(SYS_gettid)
 using std::vector;
 
@@ -156,18 +157,15 @@ Cover Miner::build_base_cover(int start, int batch_size) {
 }
 
 // Run mafia on last *batch_size* learnt clauses, parse output, build cover, compute cover.
-Cover Miner::build_cover(Cover& cover, int start, int batch_size, float min_sup) {
-    if (solver->learnts.size() >= batch_size) {
-        Cover base_cover;
-        build_base_cover(base_cover, start, batch_size);
-        
-        write_mafia_input(start, batch_size);
-        call_mafia(min_sup);
-        
-        Cover mafia_cover = read_mafia_output(base_cover);
-        mafia_cover.reduce();
-        
-        return mafia_cover;
-    }
-    return NULL;
+Cover Miner::build_cover(int start, int batch_size, float min_sup) {
+    assert(solver->learnts.size() >= batch_size);             
+    
+    write_mafia_input(start, batch_size);
+    call_mafia(min_sup);
+
+    Cover base_cover = build_base_cover(start, batch_size);
+    Cover mafia_cover = read_mafia_output(base_cover);
+    
+    mafia_cover.reduce();    
+    return mafia_cover;
 }
