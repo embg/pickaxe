@@ -10,9 +10,13 @@ class Cover {
     Cover(){}
     ~Cover(){}
 
+    std::vector<std::vector<int>> patterns;
     std::map<int, std::vector<int>> itemsets;
-
-    void clear() { itemsets.clear(); }
+    
+    void clear() {
+        patterns.clear();
+        itemsets.clear();
+    }
     void sort_itemsets() {
         for (auto&& pair : itemsets)
             std::sort(pair.second.begin(), pair.second.end());

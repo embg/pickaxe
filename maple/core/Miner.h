@@ -15,7 +15,7 @@ class Miner {
     //void attachClause(); // TODO: implement callback
     //void removeClause(); // TODO: implement callback (want to save clause if it's hidden in a super)
     
-    int build_cover(Cover& cover, int start, int batch_size, float min_sup);
+    Cover build_cover(int start, int batch_size, float min_sup);
         
   private:
     Minisat::Solver* solver;
@@ -24,10 +24,10 @@ class Miner {
     std::string out_filename;
     
     /* Helpers for build_cover() */
-    void build_base_cover(Cover& base_cover, int start, int batch_size);
     void write_mafia_input(int start, int batch_size);
     void call_mafia(float min_sup);
-    void read_mafia_output(Cover& cover, Cover& base_cover);
+    Cover build_base_cover(int start, int batch_size;)
+    Cover read_mafia_output(Cover& base_cover);
 
 };
 
