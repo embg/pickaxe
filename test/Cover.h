@@ -18,13 +18,13 @@ class Cover {
 
     std::vector<ItemVec> patterns;
     Index itemsets;
+    
     void reduce(int min_count, int min_len);
-
-    // Helper methods
     void clear() {
         patterns.clear();
         itemsets.clear();
     }
+    void print();
 };
 
 // Helper functions

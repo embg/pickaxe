@@ -1,25 +1,29 @@
 #include "Cover.h"
-using namespace std;
+
+#include <set>
+#include <iterator>
+#include <assert.h>
+#include <iostream>
 
 void sort_index(Index& index) {
     for (auto&& pair : index)
         std::sort(pair.second.begin(), pair.second.end());
 }
 
-ItemVec intersect(vector<ItemVec*> in_vecs) {
+ItemVec intersect(std::vector<ItemVec*> in_vecs) {
     ItemVec result;
     
     if (in_vecs.size() == 1) {
         result = *in_vecs[0];
     } else {
-        vector<ItemVec*> tmp_vecs;
+        std::vector<ItemVec*> tmp_vecs;
         
         for (int i=0; i < in_vecs.size() - 1; i += 2) {
             tmp_vecs.push_back(new ItemVec);
             
-            set_intersection(in_vecs[i]->begin(), in_vecs[i]->end(),
+            std::set_intersection(in_vecs[i]->begin(), in_vecs[i]->end(),
                                   in_vecs[i+1]->begin(), in_vecs[i+1]->end(),
-                                  back_inserter(*tmp_vecs.back()));
+                                  std::back_inserter(*tmp_vecs.back()));
         }
  
         if (in_vecs.size() % 2 == 1) 
@@ -51,56 +55,124 @@ Index invert(const Index& original){
     return inverted;
 }
 
-void Cover::reduce(int min_count, int min_len) {
-    PatVec solution;
+// Sort pattern indices in decreasing order of length
+PatVec patterns_by_length(const std::vector<ItemVec>& patterns) {
+    PatVec result;
     
-    // Maps pattern indices to their current coverage counts
-    std::map<int, int> counts;
-    
-    // Index *L* is a heap over pattern indices *p* with *plen(p) = L*
-    vector<PatVec> heaps;
+    for (int i = 0; i < patterns.size(); i++)
+        result.push_back(i);
 
-    // Helper lambdas
-    auto plen = [this](int p) { return (int)patterns[p].size(); };
-    auto comp = [&counts](int a, int b) { return counts[a] > counts[b]; };
-    
-    // Resize *heaps* to longest pattern length
-    int max_len = 0;
-    for (auto&& pair : itemsets)
-        max_len = max(max_len, plen(pair.first));
-    heaps.resize(max_len + 1);
+    auto comp = [&](int a, int b){ return patterns[a].size() > patterns[b].size(); };
+    std::sort(result.begin(), result.end(), comp);
 
-    // Initialize bookkeeping data structures
-    for (auto&& pair : itemsets) {
-        counts[pair.first] = pair.second.size();
-        heaps[plen(pair.first)].push_back(pair.first); 
+    return result;
+}
+
+// Index [i] of the result lists all p \in [begin, end) with counts[p] == i
+std::vector<PatVec> patterns_by_count(PatVec::iterator begin,
+                                      PatVec::iterator end,
+                                      std::map<int, int> counts) {
+    std::vector<PatVec> queue;
+
+    for (auto pat = begin; pat != end; pat++) {
+        if (queue.size() <= counts[*pat])
+            queue.resize(counts[*pat] + 1);
+        queue[counts[*pat]].push_back(*pat);
     }
 
-    // Construct an inverted index -- maps items to the patterns that cover them
-    Index itemsets_inverse = invert(itemsets);
-    
-    // Iterate through patterns in decreasing order of length
-    for (int len = heaps.size() - 1; len >= min_len; len--) {
-        PatVec heap = heaps[len];
-        sort(heap.start(), heap.end(), comp); // heuristic... TODO
-        
-        // Iterate through the heap for this length
-        for (auto&& pat : heap) {
-            if (counts[pat] >= min_count) {
-                solution.push_back(pat);
+    return queue;
+}
 
-                // Subtract the items covered by *p* from other patterns' counts
-                for (auto&& item : itemsets[pat])
-                    for (auto&& pat : itemsets_inverse[item])
-                        counts[pat]--;
+void Cover::reduce(int min_count, int min_len) {
+    
+    // We'll need to track how many items are covered by each pattern.
+    std::map<int, int> counts;
+    for (auto&& pair : itemsets)
+        counts[pair.first] = pair.second.size();
+
+    // We'll also need to track which patterns/items are covering/covered.
+    std::map<int, bool> is_covering, is_covered;
+    for (auto&& pair : itemsets){
+        is_covering[pair.first] = false;
+        for (auto&& item : pair.second)
+            is_covered[item] = false;
+    }        
+        
+    // Inverted index for *itemsets* -- maps items to the patterns that cover them.
+    Index itemsets_inverse = invert(itemsets);
+
+    // Pattern indices in decreasing order of length
+    PatVec patterns_sorted = patterns_by_length(patterns);
+    
+    // Finds uniform pattern-length block endpoints in *patterns_sorted*
+    auto find_block_end = [&](PatVec::iterator begin) {
+        auto end = begin;
+        while (++end != patterns_sorted.end())
+            if (patterns[*begin].size() != patterns[*end].size())
+                break;
+        return end;
+    };
+
+    // Iterate through pattern indices in decreasing order of length
+    PatVec::iterator begin, end;
+    begin = end = patterns_sorted.begin();
+    while (end != patterns_sorted.end()) {
+        begin = end;
+        end = find_block_end(begin);
+
+        // Iterate through the block [begin, end) in decreasing order of support
+        std::vector<PatVec> queue = patterns_by_count(begin, end, counts);
+        for (int count = queue.size() - 1; count >= min_count; count--) {
+            for (auto&& pat : queue[count]) {
+                assert(!is_covering[pat]);
+
+                // Check if *pat* needs to be moved lower in the queue
+                if (counts[pat] < count) {
+                    assert(counts[pat] >= 0);
+                    if (counts[pat] >= min_count)
+                        queue[counts[pat]].push_back(pat);
+                    continue;
+                }
+
+                // Add *pat* to the partial solution
+                is_covering[pat] = true;
+
+                // Subtract the items covered by *pat* from other patterns' counts
+                for (auto&& item : itemsets[pat]) {
+                    // We must only update *counts* once per item
+                    if (is_covered[item]) continue;
+
+                    // Mark *item* as covered and update *counts*
+                    is_covered[item] = true;
+                    for (auto&& other_pat : itemsets_inverse[item])
+                        counts[other_pat]--;
+                }
             }
         }
     }
+    
+    // Remove non-covering patterns from this->itemsets
+    for (auto it = itemsets.begin(); it != itemsets.end();) {
+        if (!is_covering[it->first])
+            it = itemsets.erase(it);
+        else
+            ++it;
+    }
+}
 
-    // TODO: construct inverse index
-    // Unfortunately, looks like I need to jump ship and move to Python (for the indep study)
-    // I can probably give: (streaming) pattern stats for wide range of benchmarks, avg depth stats, MAYBE coverage
-    // (which would require C++ translation from Python)
+void Cover::print() {
+    using namespace std;
+   
+    cout << "*** Cover ***" << endl;
+    for (auto&& pair : itemsets) {
+        cout << "Pattern: ";
+        for (auto&& x : patterns[pair.first])
+            cout << x << " ";
+        cout << endl;
 
-    // Still, this C++ stuff is a great start, at least the project has momentum now!
+        cout << "Covered clauses: ";
+        for (auto&& x : pair.second)
+            cout << x << " ";
+        cout << endl;
+    }
 }
