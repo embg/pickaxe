@@ -37,10 +37,9 @@ Miner::~Miner() {
 //         process();
 // }
 
-// Start Mafia (blocks for input on the pipe in_filename)
 void Miner::call_mafia(float min_sup) {
     std::ostringstream command;
-    command << "./mafia"
+    command << "../mafia >/dev/null"
             << " " << "-mfi"
             << " " << min_sup
             << " " << "-ascii"
@@ -68,8 +67,8 @@ void Miner::write_mafia_input(int start, int batch_size) {
     file.close();
 }
 
-// Parse Mafia out_file into *cover* using *base_cover*
-Cover Miner::read_mafia_output(Cover& base_cover){
+// Parse Mafia out_file into *cover* using *base_index*
+Cover Miner::read_mafia_output(Index& base_index){
     Cover cover;
     std::ifstream file(out_filename);
 
@@ -78,59 +77,28 @@ Cover Miner::read_mafia_output(Cover& base_cover){
         // Parse the line
         std::istringstream line_ss(line);
         int item;
-        auto pattern = vector<int>();
-        
-        while (line_ss >> item)
-            pattern.push_back(item);
-        cover.patterns.push_back(pattern);
 
-        // Collect relevant itemsets from base_cover
-        auto pattern_itemsets = vector<vector<int>*>();
-        for (auto&& i : pattern)
-            pattern_itemsets.push_back(&base_cover.itemsets[i]);
+        cover.patterns.push_back(ItemVec());
+        while (line_ss >> item)
+            cover.patterns.back().push_back(item);
+
+        // Collect relevant itemsets from base_index
+        auto pattern_itemsets = vector<ItemVec*>();
+        for (auto&& i : cover.patterns.back())
+            pattern_itemsets.push_back(&base_index[i]);
         
-        // Add the intersection of the base_cover itemsets to cover
+        // Add the intersection of the base_index itemsets to cover
         int pattern_idx = cover.patterns.size() - 1;
-        cover.itemsets.insert(std::make_pair(
-            pattern_idx, intersect(pattern_itemsets))
-        );
+        cover.itemsets.insert({pattern_idx, intersect(pattern_itemsets)});
     }
 
     file.close();
     return cover;
 }
 
-vector<int> intersect(vector<vector<int>*> in_vecs) {
-    vector<int> result;
-    
-    if (in_vecs.size() == 1) {
-        result = *in_vecs[0];
-    } else {
-        vector<vector<int>*> tmp_vecs;
-        
-        for (int i=0; i < in_vecs.size() - 1; i += 2) {
-            tmp_vecs.push_back(new vector<int>);
-            
-            std::set_intersection(in_vecs[i]->begin(), in_vecs[i]->end(),
-                                  in_vecs[i+1]->begin(), in_vecs[i+1]->end(),
-                                  std::back_inserter(*tmp_vecs.back()));
-        }
-        
-        if (in_vecs.size() % 2 == 1) 
-            tmp_vecs.push_back(new vector<int>(*in_vecs.back()));
-        
-        result = intersect(tmp_vecs);
-
-        for (auto&& vec : tmp_vecs)
-            delete vec;
-    }
-
-    return result;
-}
-
 // Build single-variable cover for *solver->learnts[start : start + batch_size]*
-Cover Miner::build_base_cover(int start, int batch_size) {
-    Cover base_cover;
+Index Miner::build_base_index(int start, int batch_size) {
+    Index base_index;
     
     // First pass -- initialize itemsets
     for (int i = start; i < start + batch_size; i++) {
@@ -138,9 +106,7 @@ Cover Miner::build_base_cover(int start, int batch_size) {
         Minisat::Clause& c = solver->ca[cr];
 
         for (int j = 0; j < c.size(); j++)
-            if (base_cover.itemsets.count(toInt(c[j])) == 0)
-                base_cover.itemsets.insert(std::make_pair(toInt(c[j]),
-                                                          vector<int>()));
+            base_index.emplace(std::make_pair(toInt(c[j]), ItemVec()));
     }
 
     // Second pass -- populate itemsets
@@ -149,23 +115,23 @@ Cover Miner::build_base_cover(int start, int batch_size) {
         Minisat::Clause& c = solver->ca[cr];
         
         for (int j = 0; j < c.size(); j++)
-            base_cover.itemsets[toInt(c[j])].push_back(i);
+            base_index[toInt(c[j])].push_back(i);
     }
 
-    base_cover.sort_itemsets();
-    return base_cover;
+    sort_index(base_index);
+    return base_index;
 }
 
 // Run mafia on last *batch_size* learnt clauses, parse output, build cover, compute cover.
-Cover Miner::build_cover(int start, int batch_size, float min_sup) {
+Cover Miner::build_cover(int start, int batch_size, float min_sup, int min_len) {
     assert(solver->learnts.size() >= batch_size);             
-    
+        
     write_mafia_input(start, batch_size);
     call_mafia(min_sup);
 
-    Cover base_cover = build_base_cover(start, batch_size);
-    Cover mafia_cover = read_mafia_output(base_cover);
+    Index base_index = build_base_index(start, batch_size);
+    Cover mafia_cover = read_mafia_output(base_index);
     
-    mafia_cover.reduce();    
+    mafia_cover.reduce((int)(min_sup * batch_size), min_len);    
     return mafia_cover;
 }

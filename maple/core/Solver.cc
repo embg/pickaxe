@@ -133,7 +133,7 @@ Solver::Solver() :
     stats.insert(std::make_pair("depth_rel", RunningStat()));
     stats.insert(std::make_pair("length", RunningStat()));
 
-    miner = new Miner(this, 1000, 0.05);
+    miner = new Miner(this);
 }
 
 
@@ -149,7 +149,7 @@ Solver::~Solver()
                   << std::endl;
     }
 
-    miner->process();
+    //miner->process();
     delete miner;
 }
 
