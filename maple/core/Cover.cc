@@ -119,6 +119,9 @@ void Cover::reduce(int min_count, int min_len) {
     while (end != patterns_sorted.end()) {
         begin = end;
         end = find_block_end(begin);
+        
+        if (patterns[*begin].size() < min_len)
+            break;
 
         // Iterate through the block [begin, end) in decreasing order of support
         std::vector<PatVec> queue = patterns_by_count(begin, end, counts);

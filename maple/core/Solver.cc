@@ -149,7 +149,8 @@ Solver::~Solver()
                   << std::endl;
     }
 
-    //miner->process();
+    Cover cover = miner->build_cover(learnts.size() - 6000, 5000, 0.003, 4);
+    cover.print();
     delete miner;
 }
 

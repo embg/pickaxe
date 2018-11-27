@@ -26,8 +26,8 @@ Miner::Miner(Minisat::Solver* sol) : solver(sol)
 
 Miner::~Miner() {
     // Delete the tempfiles
-    remove((in_filename).c_str());
-    remove((out_filename).c_str());
+    //    remove((in_filename).c_str());
+    //    remove((out_filename).c_str());
 }
 
 // Callback for Solver::attachClause
@@ -39,7 +39,7 @@ Miner::~Miner() {
 
 void Miner::call_mafia(float min_sup) {
     std::ostringstream command;
-    command << "../mafia >/dev/null"
+    command << "./mafia"// >/dev/null"
             << " " << "-mfi"
             << " " << min_sup
             << " " << "-ascii"
